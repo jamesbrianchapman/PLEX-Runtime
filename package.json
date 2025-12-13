@@ -1,18 +1,31 @@
 {
-  "name": "@xhe-carpenter/plex-runtime",
-  "version": "0.1.0",
-  "description": "PLEX Runtime compute and execution framework",
-  "main": "plex.js",
+  "name": "@iconoclast/plex-runtime",
+  "version": "0.1.3",
+  "description": "Deterministic pulse-based JavaScript runtime with vector search and bounded concurrency",
   "bin": {
     "plex-runtime": "./plex.js"
   },
+  "main": "plex.js",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jamesbrianchapman/PLEX-Runtime.git"
+  },
+  "keywords": [
+    "runtime",
+    "cli",
+    "execution-engine",
+    "concurrency",
+    "vector-search",
+    "cosine-similarity",
+    "batch-processing"
+  ],
+  "author": "James Brian Chapman",
+  "license": "SEE LICENSE IN LICENSE-MIT-NC.txt",
   "files": [
     "plex.js",
-    "lib",
-    "dist"
-  ],
-  "license": "MIT",
-  "publishConfig": {
-    "access": "public"
-  }
+    "README.md",
+    "LICENSE-MIT-NC.txt",
+    "LICENSE-PLEX-COMMERCIAL.txt"
+  ]
 }
