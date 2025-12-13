@@ -2,12 +2,12 @@
   "name": "@xhe-carpenter/plex-runtime",
   "version": "0.1.0",
   "description": "PLEX Runtime compute and execution framework",
-  "main": "index.js",
+  "main": "plex.js",
   "bin": {
-    "plex-runtime": "./index.js"
+    "plex-runtime": "./plex.js"
   },
   "files": [
-    "index.js",
+    "plex.js",
     "lib",
     "dist"
   ],
