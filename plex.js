@@ -4,11 +4,6 @@
  * Browser-safe, pure JavaScript
  *
  * Owner: James-Brian-Chapman
- * Emails:
- *  - iconoclastdao@gmail.com
- *  - cbbjbc218@gmail.com
- *  - 1jbchgap@gmail.com
- *  - iamchainjc@gmail.com
  ******************************************************************************/
 
 //////////////////////
@@ -48,7 +43,7 @@ class VectorEngine {
   static vectorize(text) {
     const tokens = this.tokenize(text);
     const map = {};
-    tokens.forEach(t => map[t] = (map[t] || 0) + 1);
+    tokens.forEach(t => (map[t] = (map[t] || 0) + 1));
     return map;
   }
 
@@ -115,11 +110,47 @@ class PlexRuntime {
 }
 
 //////////////////////
+// CLI Helpers
+//////////////////////
+
+const getFlag = (args, name) => {
+  const i = args.indexOf(name);
+  return i !== -1 ? args[i + 1] : null;
+};
+
+const showHelp = () => {
+  console.log(`
+PLEX Runtime v0.1.1
+
+Usage:
+  plex-runtime init
+  plex-runtime scan <file> --pattern <text>
+  plex-runtime vectorize <file>
+  plex-runtime search <vectors.json> --query <text>
+  plex-runtime help
+
+Description:
+  Deterministic pulse-based execution runtime with
+  lightweight vector search capabilities.
+
+Examples:
+  plex-runtime init
+  plex-runtime vectorize data.json
+  plex-runtime search vectors.json --query "hello"
+`);
+};
+
+//////////////////////
 // CLI Commands
 //////////////////////
 
 async function main() {
   const [, , cmd, ...args] = process.argv;
+
+  if (!cmd || cmd === "--help" || cmd === "help") {
+    showHelp();
+    process.exit(0);
+  }
 
   if (cmd === "init") {
     await writeJSON("plex.config.json", {
@@ -127,28 +158,52 @@ async function main() {
       maxConcurrency: 8
     });
     console.log("PLEX config initialized");
+    return;
   }
 
   if (cmd === "scan") {
-    const [file, , pattern] = args;
+    const file = args[0];
+    const pattern = getFlag(args, "--pattern");
+
+    if (!file || !pattern) {
+      console.error("scan requires <file> --pattern <text>");
+      process.exit(1);
+    }
+
     const data = await readJSON(file);
     const runtime = new PlexRuntime({});
     const res = await runtime.run(data, d =>
       JSON.stringify(d).includes(pattern)
     );
     console.log(res.filter(r => r.result));
+    return;
   }
 
   if (cmd === "vectorize") {
-    const [file] = args;
+    const file = args[0];
+    if (!file) {
+      console.error("vectorize requires <file>");
+      process.exit(1);
+    }
+
     const data = await readJSON(file);
-    const vectors = data.map(d => VectorEngine.vectorize(JSON.stringify(d)));
+    const vectors = data.map(d =>
+      VectorEngine.vectorize(JSON.stringify(d))
+    );
     await writeJSON("vectors.json", vectors);
-    console.log("Vectors written");
+    console.log("Vectors written to vectors.json");
+    return;
   }
 
   if (cmd === "search") {
-    const [file, , query] = args;
+    const file = args[0];
+    const query = getFlag(args, "--query");
+
+    if (!file || !query) {
+      console.error("search requires <vectors.json> --query <text>");
+      process.exit(1);
+    }
+
     const vectors = await readJSON(file);
     const qv = VectorEngine.vectorize(query);
     const ranked = vectors
@@ -157,8 +212,14 @@ async function main() {
         score: VectorEngine.cosine(v, qv)
       }))
       .sort((a, b) => b.score - a.score);
+
     console.log(ranked.slice(0, 10));
+    return;
   }
+
+  console.error(`Unknown command: ${cmd}`);
+  showHelp();
+  process.exit(1);
 }
 
 if (typeof process !== "undefined") {
