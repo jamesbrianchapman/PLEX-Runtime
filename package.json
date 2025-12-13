@@ -1,0 +1,27 @@
+{
+  "name": "@iconoclast/plex-runtime",
+  "version": "0.1.1",
+  "description": "PLEX Runtime™ – Pulsed Layered Exhaustive eXecution. Deterministic exhaustive compute runtime.",
+  "bin": {
+    "plex": "./plex.js"
+  },
+  "type": "module",
+  "files": [
+    "plex.js",
+    "README.md",
+    "LICENSE-MIT-NC.txt",
+    "LICENSE-PLEX-COMMERCIAL.txt"
+  ],
+  "keywords": [
+    "exhaustive-compute",
+    "deterministic-runtime",
+    "data-scan",
+    "cli",
+    "vector-search"
+  ],
+  "author": "James-Brian-Chapman",
+  "license": "SEE LICENSE IN LICENSE-MIT-NC.txt",
+  "engines": {
+    "node": ">=18"
+  }
+}

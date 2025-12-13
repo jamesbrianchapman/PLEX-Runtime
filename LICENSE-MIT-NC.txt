@@ -1,0 +1,11 @@
+MIT Non-Commercial License (MIT-NC)
+
+Copyright (c) James-Brian-Chapman
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to use,
+copy, modify, and distribute the Software for non-commercial purposes only.
+
+Commercial use is strictly prohibited without a separate commercial license.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
