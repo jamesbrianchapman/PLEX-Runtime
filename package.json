@@ -1,48 +1,17 @@
 {
-  "name": "@iconoclast/plex-runtime",
+  "name": "@xhe-carpenter/plex-runtime",
   "version": "0.1.0",
-  "description": "PLEX Runtime™ – Pulsed Layered Exhaustive eXecution. Deterministic runtime for exhaustive workloads. Non-commercial MIT; commercial license required.",
-  "homepage": "https://github.com/jamesbrianchapman/PLEX-Runtime",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jamesbrianchapman/PLEX-Runtime.git"
-  },
-  "author": "James Brian Chapman <iconoclastdao@gmail.com>",
-  "license": "MIT",
-  "private": false,
-  "main": "plex.js",
+  "description": "PLEX Runtime compute and execution framework",
+  "main": "index.js",
   "bin": {
-    "plex": "plex.js"
+    "plex-runtime": "./index.js"
   },
   "files": [
-    "plex.js",
-    "LICENSE-MIT-NC.txt",
-    "LICENSE-PLEX-COMMERCIAL.txt",
-    "README.md"
+    "index.js",
+    "lib",
+    "dist"
   ],
-  "keywords": [
-    "PLEX",
-    "runtime",
-    "exhaustive",
-    "deterministic",
-    "pulsed",
-    "fan-out",
-    "scan",
-    "analytics",
-    "verification"
-  ],
-  "scripts": {
-    "start": "node plex.js",
-    "test": "echo \"No automated tests yet\" && exit 0",
-    "lint": "eslint plex.js"
-  },
-  "engines": {
-    "node": ">=16"
-  },
-  "dependencies": {},
-  "devDependencies": {
-    "eslint": "^8.0.0"
-  },
+  "license": "MIT",
   "publishConfig": {
     "access": "public"
   }
