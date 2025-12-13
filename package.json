@@ -1,7 +1,7 @@
 {
   "name": "@jamesbrianchapman/plex-runtime",
   "version": "0.1.3",
-  "description": "PLEX Runtime CLI",
+  "description": "PLEX Runtime™ CLI - deterministic pulse-based dataset execution with vector search capabilities",
   "main": "plex.js",
   "bin": {
     "plex-runtime": "plex.js"
@@ -10,8 +10,25 @@
     "type": "git",
     "url": "https://github.com/jamesbrianchapman/PLEX-Runtime.git"
   },
-  "license": "MIT",
+  "keywords": [
+    "plex",
+    "runtime",
+    "cli",
+    "vector",
+    "search",
+    "dataset",
+    "javascript"
+  ],
+  "author": "James-Brian-Chapman <cbbjbc218@gmail.com>",
+  "license": "MIT OR PLEX-COMMERCIAL",
+  "files": [
+    "plex.js",
+    "README.md",
+    "LICENSE-MIT-NC.txt",
+    "LICENSE-PLEX-COMMERCIAL.txt"
+  ],
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
-  }
+  },
+  "dependencies": {}
 }
