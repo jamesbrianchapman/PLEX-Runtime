@@ -1,31 +1,17 @@
 {
-  "name": "@iconoclast/plex-runtime",
+  "name": "@jamesbrianchapman/plex-runtime",
   "version": "0.1.3",
-  "description": "Deterministic pulse-based JavaScript runtime with vector search and bounded concurrency",
-  "bin": {
-    "plex-runtime": "./plex.js"
-  },
+  "description": "PLEX Runtime CLI",
   "main": "plex.js",
-  "type": "module",
+  "bin": {
+    "plex-runtime": "plex.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/jamesbrianchapman/PLEX-Runtime.git"
   },
-  "keywords": [
-    "runtime",
-    "cli",
-    "execution-engine",
-    "concurrency",
-    "vector-search",
-    "cosine-similarity",
-    "batch-processing"
-  ],
-  "author": "James Brian Chapman",
-  "license": "SEE LICENSE IN LICENSE-MIT-NC.txt",
-  "files": [
-    "plex.js",
-    "README.md",
-    "LICENSE-MIT-NC.txt",
-    "LICENSE-PLEX-COMMERCIAL.txt"
-  ]
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }
