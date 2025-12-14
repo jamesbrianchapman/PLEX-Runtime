@@ -1,167 +1,355 @@
 
-# PLEX Runtime™ – Pulsed Layered Exhaustive eXecution
 
-> A deterministic runtime for exhaustive compute workloads.  
-> Non-commercial MIT; commercial license required for monetized use.
+# PLEX Runtime™
 
----
+## Pulsed Layered Exhaustive eXecution
 
-## Table of Contents
-
-1. [Overview](#overview)  
-2. [Why PLEX Exists](#why-plex-exists)  
-3. [Key Concepts](#key-concepts)  
-4. [Execution Model](#execution-model)  
-5. [Installation](#installation)  
-6. [CLI Usage](#cli-usage)  
-7. [Reference Implementation](#reference-implementation)  
-8. [Dual Licensing](#dual-licensing)  
-9. [Contributing](#contributing)  
-10. [Contact](#contact)
+### **Execution Engine Specification (v1.0)**
 
 ---
 
-## Overview
+## 1. Scope & Non-Goals
 
-PLEX Runtime™ is a **reference execution engine** for exhaustive workloads that require:
+### 1.1 Scope
 
-- Every byte examined
-- Deterministic execution
-- Linear, verifiable scaling
-- No sampling, no shortcuts
+PLEX Runtime is a **deterministic, correctness-first execution engine** for **exhaustive workloads** that must process **100% of input data** with **predictable cost and coverage guarantees**.
 
-**Target Workloads:**
+PLEX targets:
 
-- Security and compliance scans
-- Full-dataset pattern matching
-- Verification and audit workloads
-- Broad anomaly detection
+* Full-dataset scans
+* Compliance and verification workloads
+* Security inspection
+* Deterministic anomaly detection
 
-PLEX is not a database, query language, or framework — it is a **formal execution model** with correctness-first scheduling.
+PLEX is **not** a database, query language, or ML inference engine.
 
 ---
 
-## Why PLEX Exists
+### 1.2 Non-Goals
 
-Modern data lakes and lakehouses store **petabytes of unstructured and semi-structured data**. Traditional indexed engines fail for workloads that touch:
+PLEX explicitly does **not** aim to:
 
-- >8–10% of total data
-- Large portions without selective keys
-
-Problems include:
-
-- Indexes collapse
-- Latency becomes unpredictable
-- Costs explode
-- Coverage is incomplete
-
-PLEX is designed for **deterministic exhaustive scanning**, enabling predictable costs, guaranteed coverage, and linear scaling.
+* Optimize selective queries (<5–10% data access)
+* Replace OLTP databases
+* Perform approximate or probabilistic computation
+* Optimize for latency over correctness
 
 ---
 
-## Key Concepts
+## 2. Formal Guarantees (Core Claims)
 
-PLEX Runtime™ enforces four core invariants:
+PLEX provides the following **hard guarantees**:
 
-1. **No shared mutable state**  
-2. **No global synchronization**  
-3. **Pulsed work dispatch**  
-4. **Deterministic per-unit execution**
+### G1. Exhaustiveness
 
-Benefits:
+Every input unit is processed **exactly once** unless explicitly configured otherwise.
 
-- Linear scaling from single-node to multi-cluster  
-- Predictable saturation  
-- Deterministic, reproducible results  
+### G2. Determinism
+
+Given:
+
+* Identical inputs
+* Identical runtime configuration
+* Identical execution function
+
+Then:
+
+> The output is **bitwise identical** across runs.
+
+### G3. Bounded Resource Use
+
+At all times:
+
+* CPU usage ≤ configured limits
+* Memory usage ≤ configured bounds
+* No unbounded queues or task spawning
+
+### G4. Linear Cost Scaling
+
+Total work scales linearly with:
+
+* Input size
+* Compute function cost
+
+No superlinear behavior introduced by the runtime.
 
 ---
 
-## Execution Model
+## 3. Execution Model Overview
 
-PLEX decomposes work into a **layered fan-out execution tree**:
+PLEX executes workloads using a **Layered Pulse Execution Graph (LPEG)**.
 
 ```
-
 Controller
 ├─ Partition Layer
-│   ├─ Chunk Layer
-│   │   ├─ Scan Units
+│   ├─ Pulse Layer
+│   │   ├─ Execution Units
+```
 
-````
-
-**Pulse Behavior:**
-
-- Work is released in bounded pulses
-- Each pulse is independently verifiable
-- Pulses prevent system overload
-
-This contrasts with traditional map-reduce or unbounded task queues.
+Each layer enforces **isolation, determinism, and boundedness**.
 
 ---
 
-## Installation
+## 4. Data Model
 
-### Node.js / NPM
+### 4.1 Execution Unit (EU)
 
-```bash
-npm install @iconoclast/plex-runtime
-````
+The smallest indivisible unit of work.
 
-### From Source
+```
+EU = {
+  id: deterministic integer,
+  input: immutable byte slice,
+  output: immutable byte slice,
+  status: { pending | completed | failed }
+}
+```
 
-```bash
-git clone https://github.com/jamesbrianchapman/PLEX-Runtime.git
-cd PLEX-Runtime
-npm install
+Properties:
+
+* Immutable input
+* Side-effect-free execution
+* Idempotent
+
+---
+
+### 4.2 Pulse
+
+A pulse is a **bounded batch of execution units**.
+
+```
+Pulse = {
+  pulse_id,
+  execution_units[],
+  resource_budget,
+  checksum
+}
+```
+
+Guarantees:
+
+* All EUs in a pulse complete before next pulse begins
+* Pulse output checksum is reproducible
+
+---
+
+### 4.3 Partition
+
+A partition is a **stable subdivision of the dataset**.
+
+```
+Partition = hash(input_id) % N
+```
+
+Properties:
+
+* Deterministic mapping
+* Independent execution
+* Enables horizontal scaling
+
+---
+
+## 5. Deterministic Scheduling
+
+### 5.1 Scheduler Rules
+
+The scheduler:
+
+1. Assigns EUs to partitions deterministically
+2. Releases EUs in fixed-size pulses
+3. Executes pulses in deterministic order
+
+No dynamic task stealing.
+No race-dependent ordering.
+
+---
+
+### 5.2 Concurrency Model
+
+Concurrency is **explicit and bounded**.
+
+```
+max_parallel_units_per_pulse
+max_pulses_in_flight
+```
+
+No global mutable state is accessible to execution units.
+
+---
+
+## 6. Execution Function Contract
+
+User-supplied execution functions must satisfy:
+
+### F1. Purity
+
+* No external side effects
+* No time-dependent behavior
+* No randomness unless seeded
+
+### F2. Determinism
+
+Given same input → same output
+
+### F3. Resource Declaration
+
+Each function declares:
+
+* Estimated CPU cost
+* Estimated memory footprint
+
+---
+
+## 7. Resource Control
+
+PLEX enforces **hard resource ceilings**:
+
+### 7.1 CPU
+
+* Fixed thread pool
+* No oversubscription
+* No unbounded async tasks
+
+### 7.2 Memory
+
+* Per-pulse memory accounting
+* Backpressure when exceeded
+* Spill-to-disk support
+
+### 7.3 I/O
+
+* Sequential, bounded I/O
+* Explicit buffering strategy
+
+---
+
+## 8. Failure Handling
+
+### 8.1 EU-Level Failure
+
+* Failed EUs are retried deterministically
+* Retry count is fixed and logged
+
+### 8.2 Pulse-Level Failure
+
+* Pulse is re-executed
+* Output checksum validated
+
+### 8.3 Node Failure
+
+* Partition reassignment
+* Deterministic replay from last completed pulse
+
+---
+
+## 9. Verification & Auditability
+
+PLEX produces:
+
+* Per-pulse checksums
+* Deterministic execution logs
+* Replay manifests
+
+This allows:
+
+* Independent verification
+* Partial recomputation
+* Regulatory audit trails
+
+---
+
+## 10. Scaling Model
+
+### 10.1 Single Node
+
+* Pulses executed sequentially
+* Concurrency bounded
+
+### 10.2 Multi-Node
+
+* Partitions assigned to nodes
+* No shared memory
+* Deterministic merge order
+
+### 10.3 Cluster
+
+* Coordinator assigns partitions
+* Workers execute pulses independently
+* Final merge is ordered and reproducible
+
+---
+
+## 11. Hardware Backends
+
+PLEX supports pluggable execution backends:
+
+### 11.1 CPU Backend
+
+* Default
+* Thread-pool based
+* Cache-friendly execution
+
+### 11.2 GPU Backend
+
+* Kernel-based execution per pulse
+* Fixed launch configuration
+* Deterministic reduction
+
+### 11.3 WASM Backend
+
+* Sandboxed execution
+* Cross-platform determinism
+
+---
+
+## 12. API Surface (Minimal)
+
+```ts
+interface PlexRuntime {
+  run<T, R>(
+    dataset: Iterable<T>,
+    fn: (input: T) => R,
+    config: RuntimeConfig
+  ): ExecutionResult<R>;
+}
 ```
 
 ---
 
-## CLI Usage
+## 13. Comparison to Existing Systems
 
-After installation, the `plex` CLI is available:
-
-```bash
-# Run exhaustive scan on dataset
-plex run ./data.json --pulse-size 32 --max-concurrency 8
-```
-
-**Options:**
-
-* `--pulse-size`: Number of tasks per pulse
-* `--max-concurrency`: Maximum concurrent tasks per node
-* `--help`: Display CLI help
+| System    | Exhaustive | Deterministic | Bounded | Replayable |
+| --------- | ---------- | ------------- | ------- | ---------- |
+| Spark     | ❌          | ❌             | ❌       | Partial    |
+| Ray       | ❌          | ❌             | ❌       | ❌          |
+| MapReduce | ✔          | ❌             | ❌       | ❌          |
+| **PLEX**  | ✔          | ✔             | ✔       | ✔          |
 
 ---
 
-## Reference Implementation
+## 14. What Must Exist to Validate This Spec
 
-The repository includes a **non-commercial reference runtime** demonstrating:
+To claim PLEX exists, the following **must be implemented**:
 
-* Pulsed scheduling
-* Deterministic task execution
-* Task isolation guarantees
+1. Formal execution graph
+2. Deterministic scheduler
+3. Partitioning system
+4. Resource accounting
+5. Replay & checksum verification
+6. Multi-node coordination
 
-**Example usage:**
-
-```javascript
-const PlexRuntime = require('@iconoclast/plex-runtime');
-
-const runtime = new PlexRuntime({ pulseSize: 32, maxConcurrency: 8 });
-
-(async () => {
-  const dataset = [...]; // Array of data items
-  const results = await runtime.run(dataset, async (item) => {
-    // Example scan function
-    return item.value * 2;
-  });
-  console.log(results);
-})();
-```
-
-> Note: This implementation **does not include GPU optimizations, peak saturation tuning, or proprietary pulse shaping algorithms** — those are reserved for commercial licensees.
+Anything less is a **prototype**, not a runtime.
 
 ---
+
+## 15. Final Note
+
+This spec:
+
+* Matches the README claims
+* Is technically defensible
+* Could support commercial licensing
+* Would justify benchmarks and comparisons
 
 ## Dual Licensing
 
